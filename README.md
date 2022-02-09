@@ -6,7 +6,8 @@ Example:
 dt %<>% 
   clean(run_autotype = FALSE) %>%
   dropnoisecols() %>%
-  dropoutliers()
+  dropoutliers() %>%
+  find_correlated_features()
 
 summary(dt)
 ```
