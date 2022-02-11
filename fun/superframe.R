@@ -15,7 +15,8 @@ as.superframe = function(x, run_autotype = run_autotype){
             classes = sapply(x, function(i) class(i)[1]),
             dropped_rows = data.frame(),
             dropped_cols = list(),            
-            correlated_features = list()
+            correlated_features = list(),
+            text_cols = c()
         ), 
         class = "superframe"
     ))
@@ -29,5 +30,6 @@ summary.superframe = function(x) list(
     classes = x$classes,
     `dropped columns` = as.character(sapply(x$dropped_cols, function(i) glue::glue('{i$col} ({i$reason} {i$shortinfo})'))),
     `dropped` = glue::glue('[{nrow(x$dropped_rows)}] rows due to [{cc(unique(x$dropped_rows$reason, sep = ", "))}]'),
-    `correlated features` = x$correlated_features
+    `correlated features` = x$correlated_features,
+    text_cols = x$text_cols
 )
