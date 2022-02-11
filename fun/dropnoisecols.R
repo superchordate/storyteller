@@ -1,6 +1,6 @@
 dropnoisecols = function(
     x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE,
-    napct_cutoff = 0.25, pctunique_range = c(0.05, 0.8), truepct_cutoff = 0.1
+    napct_cutoff = 0.25, pctunique_range = c(0.05, 0.6), truepct_cutoff = 0.1
 ){
 
     x = as.superframe(x, run_autotype = run_autotype)
@@ -60,6 +60,7 @@ dropnoisecols = function(
         }
 
         # check for text column.
+        #if(col == 'victim.victim_id') browser()
         if(
             iclass %in% c('factor', 'ordinal') && 
             (pctunique > pctunique_range[2]) && 
