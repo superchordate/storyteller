@@ -35,7 +35,7 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
                     as.numeric(x$data[notna, colcombo[1]]), 
                     as.numeric(x$data[notna, colcombo[2]])
                 )
-                if(icor > 0.3) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+                if(abs(icor) > 0.5) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
                     cols = colcombo, 
                     types = types, 
                     test = 'corr',
