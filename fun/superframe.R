@@ -14,7 +14,8 @@ as.superframe = function(x, run_autotype = run_autotype){
             initrows = 1:nrow(x),
             classes = sapply(x, function(i) class(i)[1]),
             dropped_rows = data.frame(),
-            dropped_cols = list(),            
+            dropped_cols = list(),
+            grouped_cols = list(),
             correlated_features = list(),
             text_cols = c()
         ), 
