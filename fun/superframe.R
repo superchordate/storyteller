@@ -28,9 +28,14 @@ superframe = as.superframe
 summary.superframe = function(x) list(
     dim = dim(x$data),
     raw_dim = x$raw_dim,
-    classes = x$classes,
+    classes = x$classes,        
+    text_cols = x$text_cols,
     `dropped columns` = as.character(sapply(x$dropped_cols, function(i) glue::glue('{i$col} ({i$reason} {i$shortinfo})'))),
     `dropped` = glue::glue('[{nrow(x$dropped_rows)}] rows due to [{cc(unique(x$dropped_rows$reason, sep = ", "))}]'),
-    `correlated features` = length(x$correlated_features),
-    text_cols = x$text_cols
+    `correlated features` = data.frame(
+        col1 = sapply(x$correlated_features, function(x) x$cols[1]),
+        col2 = sapply(x$correlated_features, function(x) x$cols[2]),
+        test = sapply(x$correlated_features, function(x) x$test),
+        value = sapply(x$correlated_features, function(x) x$value)
+    )
 )

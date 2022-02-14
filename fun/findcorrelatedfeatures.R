@@ -39,7 +39,7 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
                     cols = colcombo, 
                     types = types, 
                     test = 'corr',
-                    value = icor
+                    value = round(icor, 4)
                 )
             }
             
@@ -49,7 +49,8 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
             
             # choose one feature to check chi sq over values, and one to 
             loopover = names(sapply(colcombo, function(icol) sum(!duplicated(x$data[[icol]]))))
-            idt = x$data[, loopover]
+            notna = which(!is.na(x$data[[colcombo[1]]]) & !is.na(x$data[[colcombo[2]]]))
+            idt = x$data[notna, loopover]
             names(idt) = c('loopover', 'checkvals')
             sigfound = FALSE
             for(ival in levels(idt$loopover)){
@@ -77,7 +78,7 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
                 cols = colcombo, 
                 types = types, 
                 test = 'chisq-loop',
-                value = testval
+                value = round(testval, 4)
             )
             
             
@@ -89,9 +90,10 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
             
             faccol = colcombo[types == 'factor']
             numcol = colcombo[types == 'numlike']
+            notna = which(!is.na(x$data[[colcombo[1]]]) & !is.na(x$data[[colcombo[2]]]))
 
-            inum = as.numeric(x$data[[numcol]])
-            ifac = x$data[[faccol]]
+            inum = as.numeric(x$data[[numcol]][notna])
+            ifac = x$data[[faccol]][notna]
 
             mresult = data.frame(summary(lm(inum ~ ifac))$coefficients)
             rm(inum, ifac)
@@ -100,7 +102,7 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
                 cols = colcombo, 
                 types = types, 
                 test = 'lm-pvalue',
-                value = mresult$Pr...t..
+                value = round(min(mresult$Pr...t..), 4)
             )
             
         }    
