@@ -1,6 +1,6 @@
 dropnoisecols = function(
     x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE,
-    napct_cutoff = 0.25, pctunique_range = c(0.05, 0.8), truepct_cutoff = 0.1
+    napct_cutoff = 0.25, pctunique_range = c(0.05, 0.6), truepct_cutoff = 0.1
 ){
 
     x = as.superframe(x, run_autotype = run_autotype)
@@ -14,14 +14,15 @@ dropnoisecols = function(
         iclass = class(x$data[[col]])[1]
         pctunique = round(length(uniquevals) / sum(!is.na(x$data[[col]])), 2)
         napct = round(mean(is.na(x$data[[col]])), 2)
-        if(class(x$data[[col]])[1] == 'logical') truepct = round(sum(x$data[[col]]) / nrow(x$data), 2)
+        if(iclass == 'logical') truepct = round(sum(x$data[[col]]) / nrow(x$data), 2)
+        if(iclass %in% c('factor', 'ordinal')) idlike = !any(grepl('[ /]', uniquevals)) # characters not typical in ids.
         
         # single-valued
-        if(iclass %in% c('factor', 'ordinal') && pctunique < pctunique_range[1]){
+        if(iclass %in% c('factor', 'ordinal') && length(uniquevals) == 1){
             dodrop[[length(dodrop) + 1]] <- list(
                 col = col, 
-                reason = 'pctunique < pctunique_range',
-                info = glue::glue('[{pctunique}] vs cutoff [{pctunique_range[2]}]. Values: [{paste(uniquevals, sep = ", ")}].'),
+                reason = 'singleval',
+                info = uniquevals,
                 shortinfo = pctunique
             )
 
@@ -35,10 +36,14 @@ dropnoisecols = function(
             )
 
         # too many values (id-like)
-        } else if(iclass %in% c('factor', 'ordinal') && (pctunique > pctunique_range[2])){
+        } else if(
+            iclass %in% c('factor', 'ordinal') && 
+            (pctunique > pctunique_range[2]) &&
+            idlike
+        ){
             dodrop[[length(dodrop) + 1]] <- list(
                 col = col, 
-                reason = 'pctunique > pctunique_range',
+                reason = 'id-like',
                 info = glue::glue('[{pctunique}] vs cutoff [{pctunique_range[2]}]. Sample: [{paste(easyr::spl(x$data[[col]], 5), sep = ", ")}].'),
                 shortinfo = pctunique
             )
@@ -53,6 +58,14 @@ dropnoisecols = function(
             )
 
         }
+
+        # check for text column.
+        #if(col == 'victim.victim_id') browser()
+        if(
+            iclass %in% c('factor', 'ordinal') && 
+            (pctunique > pctunique_range[2]) && 
+            !idlike
+        ) x$text_cols = unique(c(x$text_cols, col))
         
         rm(iclass, pctunique, napct)
         
