@@ -1,4 +1,4 @@
-dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE){
+dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE, percentile_limit = 0.99){
 
     x = as.superframe(x, run_autotype = run_autotype)
     if(verbose) print('Checking for outliers.')
@@ -11,10 +11,9 @@ dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE)
         
         vals = setdiff(x$data[, numcol], 0) # with many 0s, including them can result in 0-valued quantiles.
         if(checkabs) vals = abs(vals)
-        qs = quantile(vals, probs = c(0.25, 0.75, 0.95), na.rm = TRUE)
-        rm(vals)
+        qs = quantile(vals, probs = c(0.25, 0.75, percentile_limit), na.rm = TRUE)
 
-        cutoff = min(qs[2] + (qs[2] - qs[1]), qs[3]) # don't allow cutoff below the 95th percentile. 
+        cutoff = max(qs[2] + (qs[2] - qs[1]), qs[3]) # don't allow cutoff below the 95th percentile. 
         checkvals = if(checkabs){ abs(x$data[, numcol]) } else { x$data[, numcol]  }
         drop = which((!is.na(checkvals)) & (checkvals > cutoff))
 
