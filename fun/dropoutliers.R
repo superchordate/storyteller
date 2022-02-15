@@ -11,10 +11,10 @@ dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE)
         
         vals = setdiff(x$data[, numcol], 0) # with many 0s, including them can result in 0-valued quantiles.
         if(checkabs) vals = abs(vals)
-        qs = quantile(vals, probs = c(0.25, 0.75), na.rm = TRUE)
+        qs = quantile(vals, probs = c(0.25, 0.75, 0.95), na.rm = TRUE)
         rm(vals)
 
-        cutoff = qs[2] + diff(qs)
+        cutoff = min(qs[2] + (qs[2] - qs[1]), qs[3]) # don't allow cutoff below the 95th percentile. 
         checkvals = if(checkabs){ abs(x$data[, numcol]) } else { x$data[, numcol]  }
         drop = which((!is.na(checkvals)) & (checkvals > cutoff))
 
@@ -29,7 +29,7 @@ dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE)
                     raw_row = x$initrows[drop], 
                     outlier_column = numcol
                 )
-            )
+            ) %>% dplyr::relocate(raw_row, reason, outlier_column)
 
             # remove the rows.
             x$initrows = x$initrows[-drop]
