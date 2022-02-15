@@ -3,7 +3,7 @@ as.superframe = function(x, run_autotype = run_autotype){
     
     if(class(x)[1] == 'superframe') return(x)
 
-    x = data.frame(x)
+    x = data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
     if(run_autotype) x = easyr::atype(x)
     x = easyr::char2fac(x, na_level = NA)
 
