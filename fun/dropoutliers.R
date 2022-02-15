@@ -8,9 +8,14 @@ dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE)
     for(numcol in names(x$data)[which(x$classes %in% c('integer', 'numeric'))]){
 
         # search for outliers.
-        qs = quantile(x$data[, numcol], probs = c(0.25, 0.75), na.rm = TRUE)
+        
+        vals = setdiff(x$data[, numcol], 0) # with many 0s, including them can result in 0-valued quantiles.
+        if(checkabs) vals = abs(vals)
+        qs = quantile(vals, probs = c(0.25, 0.75), na.rm = TRUE)
+        rm(vals)
+
         cutoff = qs[2] + diff(qs)
-        checkvals = if(checkabs){ abs(x$data[, numcol]) } else { x$data[, numcol]  }        
+        checkvals = if(checkabs){ abs(x$data[, numcol]) } else { x$data[, numcol]  }
         drop = which((!is.na(checkvals)) & (checkvals > cutoff))
 
         # if they exist:
