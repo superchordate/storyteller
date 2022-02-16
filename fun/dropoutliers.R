@@ -1,4 +1,4 @@
-dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE){
+dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE, percentile_limit = 0.99){
 
     x = as.superframe(x, run_autotype = run_autotype)
     if(verbose) print('Checking for outliers.')
@@ -8,9 +8,13 @@ dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE)
     for(numcol in names(x$data)[which(x$classes %in% c('integer', 'numeric'))]){
 
         # search for outliers.
-        qs = quantile(x$data[, numcol], probs = c(0.25, 0.75), na.rm = TRUE)
-        cutoff = qs[2] + diff(qs)
-        checkvals = if(checkabs){ abs(x$data[, numcol]) } else { x$data[, numcol]  }        
+        
+        vals = setdiff(x$data[, numcol], 0) # with many 0s, including them can result in 0-valued quantiles.
+        if(checkabs) vals = abs(vals)
+        qs = quantile(vals, probs = c(0.25, 0.75, percentile_limit), na.rm = TRUE)
+
+        cutoff = max(qs[2] + (qs[2] - qs[1]), qs[3]) # don't allow cutoff below the 95th percentile. 
+        checkvals = if(checkabs){ abs(x$data[, numcol]) } else { x$data[, numcol]  }
         drop = which((!is.na(checkvals)) & (checkvals > cutoff))
 
         # if they exist:
@@ -24,7 +28,7 @@ dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE)
                     raw_row = x$initrows[drop], 
                     outlier_column = numcol
                 )
-            )
+            ) %>% dplyr::relocate(raw_row, reason, outlier_column)
 
             # remove the rows.
             x$initrows = x$initrows[-drop]
