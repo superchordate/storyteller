@@ -1,5 +1,5 @@
 # https://medium.com/@outside2SDs/an-overview-of-correlation-measures-between-categorical-and-continuous-variables-4c7f85610365
-find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
+find_correlated_features = function(x, verbose = TRUE, run_autotype = TRUE){
 
     x = as.superframe(x, run_autotype = run_autotype)
     x$correlated_features = list()
@@ -95,6 +95,8 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
         }    
 
     }
+
+    if(verbose) print(glue('{fmat(length(x$correlated_features)/nrow(colcombos), "%")} of feature combinations were correlated.'))
 
     return(x)
 
