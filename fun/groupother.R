@@ -8,7 +8,7 @@ groupother = function(x, verbose = TRUE, run_autotype = TRUE, pct_catg_cutoff = 
         valcounts = table(x$data[[col]][ !is.na(x$data[[col]]) ])
         toosmall = which(valcounts < nrow(x$data) * pct_catg_cutoff)
 
-        if(length(toosmall) > 0){
+        if(length(toosmall) >= 2){ # must be at least 2 to create a combined group.
             x$grouped_cols[[col]] <- x$data[[col]] # capture raw grouped column before modifying it. 
             levels(x$data[[col]]) = c(levels(x$data[[col]]), 'small_groups') # add the grouped label.
             for(i in toosmall) x$data[[col]][ x$data[[col]] == names(valcounts)[i] ] <- 'small_groups' # replace the values.
