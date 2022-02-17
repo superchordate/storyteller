@@ -39,46 +39,32 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
                     cols = colcombo, 
                     types = types, 
                     test = 'corr',
-                    value = round(icor, 4)
+                    value = round(icor, 4),
+                    info = glue('correlation (closer to 1 better) value of {fmat(round(testval, 4), "%")}')
                 )
             }
             
         # all factors.
         } else if(all(types == 'factor')){
             
+            # get counts in a format we can send to chisq.test.
+            idt = x$data[, colcombo]
+            names(idt) = c('col1', 'col2')
+            idt$ct = 1
+            idt %<>% 
+                dcast(col1 ~ col2, value.var = 'ct', fun.aggregate = sum) %>%
+                select(-col1)
+            idt[is.na(idt)] <- 0
+
+            # run chi squared.
+            testval = suppressWarnings(chisq.test(idt))$p.value
             
-            # choose one feature to check chi sq over values, and one to 
-            loopover = names(sapply(colcombo, function(icol) sum(!duplicated(x$data[[icol]]))))
-            notna = which(!is.na(x$data[[colcombo[1]]]) & !is.na(x$data[[colcombo[2]]]))
-            idt = x$data[notna, loopover]
-            names(idt) = c('loopover', 'checkvals')
-            sigfound = FALSE
-            for(ival in levels(idt$loopover)){
-                
-                ival_dt = idt %>%
-                    dplyr::mutate(match = loopover == ival) %>%
-                    dplyr::group_by(checkvals, match) %>%
-                    dplyr::summarize(n = n(), .groups = 'drop') %>%
-                    reshape2::dcast(checkvals ~ match, value.var = 'n')
-                    
-                ival_dt = ival_dt[, setdiff(names(ival_dt), c('NA', 'checkvals'))]
-                ival_dt = as.matrix(ival_dt)
-                
-                ival_dt[is.na(ival_dt)] <- 0
-                testval = suppressWarnings(chisq.test(ival_dt)$p.value)
-                
-                if(!is.na(testval) && testval < 0.1){
-                    sigfound = TRUE
-                    break
-                }
-                
-            }
-            
-            if(sigfound) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+            if(testval < 0.05) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
                 cols = colcombo, 
                 types = types, 
-                test = 'chisq-loop',
-                value = round(testval, 4)
+                test = 'chi-squared',
+                value = round(testval, 4),
+                info = glue('chi-squared p-value (smaller better): {fmat(round(testval, 4), "%")}')
             )
             
             
@@ -102,7 +88,8 @@ find_correlated_features = function(x, verbose = FALSE, run_autotype = TRUE){
                 cols = colcombo, 
                 types = types, 
                 test = 'lm-pvalue',
-                value = round(min(mresult$Pr...t..), 4)
+                value = round(min(mresult$Pr...t..), 4),
+                info = glue('logistic regression p-value (smaller better):{fmat(round(min(mresult$Pr...t..), 4), "%")}')
             )
             
         }    
