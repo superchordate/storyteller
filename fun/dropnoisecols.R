@@ -83,7 +83,7 @@ dropnoisecols = function(
         x$dropped_cols[[idodrop$col]] <- idodrop
 
         if(verbose) print(glue('
-            Dropped column [{idodrop$col}] for reason [{idodrop$reason}].
+            Dropped column [{idodrop$col}] for reason [{idodrop$reason}]: {idodrop$info}.
         '))
 
         rm(idodrop)

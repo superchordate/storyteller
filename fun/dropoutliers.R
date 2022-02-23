@@ -34,7 +34,7 @@ dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE,
             x$initrows = x$initrows[-drop]
             x$data = x$data[-drop, ]
             
-            if(verbose) print(glue::glue('\t dropped [{length(drop)}] rows with outlier at [{numcol}]'))
+            if(verbose) print(glue::glue('\t dropped [{length(drop)}] rows with outlier at [{numcol}] > {round(cutoff, 4)}'))
             found = TRUE
 
         }
