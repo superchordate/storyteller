@@ -80,17 +80,33 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
 
             inum = as.numeric(x$data[[numcol]][notna])
             ifac = x$data[[faccol]][notna]
+            
+            # special case where inum is single-value.
+            if(all(inum == inum[1])){
+                
+                x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+                    cols = colcombo, 
+                    types = types, 
+                    test = 'single-value',
+                    value = round(inum[1], 4),
+                    info = glue('non-na values are all [{round(inum[1], 4)}].')
+                )
+                
+            } else {
 
-            mresult = data.frame(summary(lm(inum ~ ifac))$coefficients)
+                mresult = data.frame(summary(lm(inum ~ ifac))$coefficients)
+                
+                if(any(mresult$Pr...t.. < 0.1)) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+                    cols = colcombo, 
+                    types = types, 
+                    test = 'lm-pvalue',
+                    value = round(min(mresult$Pr...t..), 4),
+                    info = glue('logistic regression p-value (smaller better):{fmat(round(min(mresult$Pr...t..), 4), "%")}')
+                )
+                
+            }
+            
             rm(inum, ifac)
-
-            if(any(mresult$Pr...t.. < 0.1)) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
-                cols = colcombo, 
-                types = types, 
-                test = 'lm-pvalue',
-                value = round(min(mresult$Pr...t..), 4),
-                info = glue('logistic regression p-value (smaller better):{fmat(round(min(mresult$Pr...t..), 4), "%")}')
-            )
             
         }    
 
