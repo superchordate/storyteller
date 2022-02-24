@@ -31,18 +31,38 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
             
             notna = which(!is.na(x$data[[colcombo[1]]]) & !is.na(x$data[[colcombo[2]]]))
             if(length(notna) > 2){
-                icor = cor(
-                    as.numeric(x$data[notna, colcombo[1]]), 
-                    as.numeric(x$data[notna, colcombo[2]])
-                )
-                if(abs(icor) > 0.5) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
-                    cols = colcombo, 
-                    types = types, 
-                    test = 'corr',
-                    value = round(icor, 4),
-                    info = glue('correlation (closer to 1 better) value of {fmat(round(testval, 4), "%")}')
-                )
+                
+                # special case where inum is single-value.
+                singevalued = sapply(colcombo, function(icol) all(x$data[[icol]] == x$data[[icol]][1]))
+                singevalued = singevalued[singevalued]
+                if(length(singevalued) > 0){
+                    
+                    x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+                        cols = colcombo, 
+                        types = types, 
+                        test = 'single-value',
+                        value = round(x$data[[names(singevalued)]], 4),
+                        info = glue('non-na values are all [{round(x$data[[names(singevalued)]], 4)}].')
+                    )
+                    
+                } else {
+                    
+                    icor = cor(
+                        as.numeric(x$data[notna, colcombo[1]]), 
+                        as.numeric(x$data[notna, colcombo[2]])
+                    )
+                    if(abs(icor) > 0.5) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+                        cols = colcombo, 
+                        types = types, 
+                        test = 'corr',
+                        value = round(icor, 4),
+                        info = glue('correlation (closer to 1 better) value of {fmat(round(icor, 4), "%")}')
+                    )
+                    rm(icor)
+                    
+                }
             }
+            rm(notna)
             
         # all factors.
         } else if(all(types == 'factor')){
@@ -66,6 +86,8 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
                 value = round(testval, 4),
                 info = glue('chi-squared p-value (smaller better): {fmat(round(testval, 4), "%")}')
             )
+            
+            rm(idt, testval)
             
             
         # factor and number.
@@ -104,11 +126,15 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
                     info = glue('logistic regression p-value (smaller better):{fmat(round(min(mresult$Pr...t..), 4), "%")}')
                 )
                 
+                rm(mresult)
+                
             }
             
-            rm(inum, ifac)
+            rm(inum, ifac, faccol, numcol, notna)
             
-        }    
+        }
+        
+        rm(colcombo, types)
 
     }
 
