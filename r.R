@@ -10,8 +10,8 @@ begin()
 # read data.
 runfolder('scripts')
 
-dt %<>%
+dt %>%
   correlatedfeatures_address(target = 'policy_annual_premium')
 
-summary(dt)
+#summary(dt)
 

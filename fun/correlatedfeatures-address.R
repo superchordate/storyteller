@@ -1,7 +1,81 @@
-# https://medium.com/@outside2SDs/an-overview-of-correlation-measures-between-categorical-and-continuous-variables-4c7f85610365
-correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
+correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, target){
 
     x = as.superframe(x, run_autotype = run_autotype)
-    for()
+    
+    addresscols = list()
+    for(i in x$correlated_features) if(target %ni% i$cols) addresscols[[paste0(i$cols, collapse = '')]] <- i$cols
+    
+    dropcols = c()
+    for(i in names(addresscols)){
 
+      cols = addresscols[[i]]
+      if(is.null(cols)) next
+      
+      r2s = sapply(cols, function(i) summary(lm(as.formula(paste0('`', target, '` ~ `', i, '`')), data = x$data))$r.squared)
+      dropcol = names(r2s)[r2s != max(r2s)]
+      dropcols %<>% c(dropcol)
+      
+      for(j in names(addresscols)) if(!is.null(addresscols[[j]]) && dropcol %in% addresscols[[j]]) addresscols[[j]] <- NULL
+      
+      rm(i, j, cols, r2s, dropcol)
+      
+    }
+    
+    # drop the columns and run LASSO.
+    y = x$data[[target]]
+    X = x$data[, setdiff(names(x$data), c(target, dropcols, x$text_cols))]
+    X %<>% todummies(other.name = x$othername)
+    Xdm = data.matrix(X)
+    
+    # https://www.statology.org/lasso-regression-in-r/
+    m = glmnet(Xdm, y, alpha = 1, lambda = cv.glmnet(Xdm, y, alpha = 1)$lambda.min)
+    cm = coef(m)
+    scm = summary(cm)
+    features = data.frame(feature = rownames(cm)[scm$i], coef = scm$x) %>%
+      filter(feature != '(Intercept)')
+    
+    yX = X[, features$feature]
+    yX$y = y
+    m = summary(lm(y ~ ., data = yX))
+    
+    return(m)
+
+}
+
+todummies = function(
+    x, match.to = NULL, make.names = TRUE, ignore.cols = c(), other.name = 'Other'
+){
+  
+  for(icol in setdiff(colnames(x), ignore.cols)){
+      if(is.character(x[[icol]]) || is.factor(x[[icol]])){
+    
+    # Convert to character then factor to ensure no extra levels.
+    x[[icol]] = as.character(x[[icol]])
+    x[[icol]] = as.factor(x[[icol]])
+    
+    # Get unique values sorted by occurence. 
+    # The least occured should be the 'other' that doesn't get its own columns.
+    ivals = table(x[[icol]]) %>% sort(decreasing = TRUE)
+    
+    # Pick the 'Other' column that won't show up as a columns, and remove it from vals.
+    # If it isn't there, remove the last (smallest) group.
+    if(other.name %in% names(ivals)){
+      ivals = ivals[names( ivals ) != other.name]
+    } else {
+      ivals = ivals[-length(ivals )]
+    }
+    
+    for(ival in names(ivals)) x[[cc( icol, '=', ival)]] = (x[[icol]] == ival) * 1
+    
+    x = x[, setdiff(colnames(x), icol)]
+    
+    if(make.names){
+      this.names = which(grepl(icol, colnames(x), fixed = TRUE ))
+      colnames(x)[this.names] = make.names(colnames(x)[ this.names])
+    }
+    
+  }}
+  
+  return(x)
+    
 }
