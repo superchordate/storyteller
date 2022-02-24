@@ -3,17 +3,15 @@ require(glue)
 require(magrittr)
 require(progress)
 require(reshape2)
+require(glmnet) # for LASSO.
+require(lubridate)
 begin()
 
 # read data.
 runfolder('scripts')
 
-# run steps:
-dt %<>% 
-  clean(run_autotype = FALSE) %>%
-  dropnoisecols() %>%
-  dropoutliers() %>%
-  correlatedfeatures_find() #%>%
-  #correlatedfeatures_address()
+dt %<>%
+  correlatedfeatures_address(target = 'policy_annual_premium')
 
 summary(dt)
+
