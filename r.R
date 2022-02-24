@@ -12,14 +12,18 @@ runfolder('scripts')
 
 dt %>%
   correlatedfeatures_address(
-    target = 'policy_annual_premium',
-    verbose = FALSE
+    target = 'total_claim_amount'
   ) %>%
-  fitmodel(target = 'policy_annual_premium') %>%
+  fitmodel(
+    ignorecols = c('vehicle_claim', 'property_claim', 'injury_claim')
+  ) %>%
   summary()
 
 dt %>%
-  fitmodel(target = 'policy_annual_premium') %>%
+  fitmodel(
+    target = 'total_claim_amount',
+    ignorecols = c('vehicle_claim', 'property_claim', 'injury_claim')
+  ) %>%
   summary()
 
 
