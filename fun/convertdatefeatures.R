@@ -32,7 +32,10 @@ convert_date_features = function(x,  verbose = TRUE){
                 irow$Var2
             )
             seconddate = setdiff(as.character(irow[1,]), firstdate)
-            addcol(paste0(firstdate, '_to_', seconddate), x$data[[seconddate]] - x$data[[seconddate]])
+            addcol(
+                paste0(firstdate, '_to_', seconddate), 
+                x$data[[seconddate]] - x$data[[firstdate]]
+            )
         }
     }
 

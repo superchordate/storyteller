@@ -11,7 +11,15 @@ begin()
 runfolder('scripts')
 
 dt %>%
-  correlatedfeatures_address(target = 'policy_annual_premium')
+  correlatedfeatures_address(
+    target = 'policy_annual_premium',
+    verbose = FALSE
+  ) %>%
+  fitmodel(target = 'policy_annual_premium') %>%
+  summary()
 
-#summary(dt)
+dt %>%
+  fitmodel(target = 'policy_annual_premium') %>%
+  summary()
+
 

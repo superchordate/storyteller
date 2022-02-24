@@ -18,7 +18,8 @@ as.superframe = function(x, run_autotype = run_autotype){
             grouped_cols = list(),
             correlated_features = list(),
             text_cols = c(),
-            othername = 'small_groups'
+            othername = 'small_groups',
+            target = NULL
         ), 
         class = "superframe"
     ))

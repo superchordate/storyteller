@@ -1,44 +1,52 @@
 correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, target){
 
     x = as.superframe(x, run_autotype = run_autotype)
+    x$target = target
     
     addresscols = list()
     for(i in x$correlated_features) if(target %ni% i$cols) addresscols[[paste0(i$cols, collapse = '')]] <- i$cols
     
-    dropcols = c()
+    dodrop = list()
     for(i in names(addresscols)){
 
       cols = addresscols[[i]]
       if(is.null(cols)) next
       
       r2s = sapply(cols, function(i) summary(lm(as.formula(paste0('`', target, '` ~ `', i, '`')), data = x$data))$r.squared)
-      dropcol = names(r2s)[r2s != max(r2s)]
-      dropcols %<>% c(dropcol)
+      dropcol = names(r2s)[r2s != max(r2s)]      
+      
+      dodrop[[length(dodrop) + 1]] <- list(
+          col = dropcol, 
+          reason = 'correlated',
+          info = glue('Column [{dropcol}] dropped and [{setdiff(cols, dropcol)}] kept.'),
+          shortinfo = glue('Column [{dropcol}] dropped and [{setdiff(cols, dropcol)}] kept.')
+      )
       
       for(j in names(addresscols)) if(!is.null(addresscols[[j]]) && dropcol %in% addresscols[[j]]) addresscols[[j]] <- NULL
       
       rm(i, j, cols, r2s, dropcol)
       
     }
-    
-    # drop the columns and run LASSO.
-    y = x$data[[target]]
-    X = x$data[, setdiff(names(x$data), c(target, dropcols, x$text_cols))]
-    X %<>% todummies(other.name = x$othername)
-    Xdm = data.matrix(X)
-    
-    # https://www.statology.org/lasso-regression-in-r/
-    m = glmnet(Xdm, y, alpha = 1, lambda = cv.glmnet(Xdm, y, alpha = 1)$lambda.min)
-    cm = coef(m)
-    scm = summary(cm)
-    features = data.frame(feature = rownames(cm)[scm$i], coef = scm$x) %>%
-      filter(feature != '(Intercept)')
-    
-    yX = X[, features$feature]
-    yX$y = y
-    m = summary(lm(y ~ ., data = yX))
-    
-    return(m)
+
+    # drop columns and add info to object.
+    # must match fun\dropnoisecols.R
+    for(idodrop in dodrop){
+        
+        # move data to the dropped column list.
+        idodrop$data = x$data[[idodrop$col]]
+        x$data[[idodrop$col]] <- NULL
+        x$classes = x$classes[which(names(x$classes) != idodrop$col)]
+
+        # add to object dropped columns.
+        x$dropped_cols[[idodrop$col]] <- idodrop
+
+        if(verbose) print(idodrop$info)
+
+        rm(idodrop)
+
+    }
+
+    return(x)
 
 }
 

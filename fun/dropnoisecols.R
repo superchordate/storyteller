@@ -72,6 +72,7 @@ dropnoisecols = function(
     }
 
     # drop columns and add info to object.
+    # must match fun\correlatedfeatures-address.R
     for(idodrop in dodrop){
         
         # move data to the dropped column list.
