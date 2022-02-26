@@ -12,7 +12,7 @@ correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, ta
       cols = addresscols[[i]]
       if(is.null(cols)) next
       
-      r2s = sapply(cols, function(i) summary(lm(as.formula(paste0('`', target, '` ~ `', i, '`')), data = x$data))$r.squared)
+      r2s = sapply(cols, function(i) calculate_strength(x$data, target, i))
       dropcol = names(r2s)[r2s != max(r2s)]      
       
       dodrop[[length(dodrop) + 1]] <- list(
@@ -47,6 +47,35 @@ correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, ta
     }
 
     return(x)
+
+}
+
+calculate_strength = function(data, target, calculating_column){
+
+  # is binomial or numeric? use lasso regression. 
+  isbinom = length(unique(data[[target]])) == 2
+  if(is.numeric(data[[target]]) || isbinom){
+
+    testval = summary(lm(
+      as.formula(paste0('`', target, '` ~ `', calculating_column, '`')), 
+      data = data
+    ))$r.squared
+
+  # otherwise use a loop to create models for each value
+  # similar to multinomial.
+  } else {
+
+    testval = mean(sapply(levels(data[[target]]), function(ival){
+      data$y = (data[[target]] == ival) * 1
+      summary(lm(
+        as.formula(paste0('y ~ `', calculating_column, '`')), 
+        data = data
+      ))$r.squared
+    }))
+    
+  }
+
+  return(testval)
 
 }
 
