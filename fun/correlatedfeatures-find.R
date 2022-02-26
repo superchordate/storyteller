@@ -5,10 +5,14 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
     x$correlated_features = list()
 
     checkcols = setdiff(names(x$data), x$text_cols)
-    colcombos = filter(
-        expand.grid(checkcols, checkcols, stringsAsFactors = FALSE),
-        Var1 != Var2
-    )
+    colcombos = NULL
+    for(i in 1:(length(checkcols)-1)) for(j in (i+1):length(checkcols)){
+        colcombos = bind_rows(colcombos, data.frame(
+            col1 = checkcols[i],
+            col2 = checkcols[j],
+            stringsAsFactors = FALSE
+        ))
+    }
     
     if(verbose) print(glue('Searching for high correlation among {nrow(colcombos)} feature combinations. May take some time.'))
     
@@ -17,6 +21,7 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
 
         if(verbose) pb$tick()
         colcombo = as.character(colcombos[colcombos_idx, ])
+        colcomboid = paste0(sort(colcombo), collapse = '-')
 
         types = as.character(sapply(colcombo, function(i){
             iclass = class(x$data[[i]])[1]
@@ -25,6 +30,8 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
             )) return('numlike')
             return(iclass)
         }))
+
+        #if(colcomboid == 'age-policy_state') browser()
         
         # all numeric-like
         if(all(types == 'numlike')){
@@ -37,7 +44,7 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
                 singevalued = singevalued[singevalued]
                 if(length(singevalued) > 0){
                     
-                    x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+                    x$correlated_features[[colcomboid]] <- list(
                         cols = colcombo, 
                         types = types, 
                         test = 'single-value',
@@ -51,7 +58,7 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
                         as.numeric(x$data[notna, colcombo[1]]), 
                         as.numeric(x$data[notna, colcombo[2]])
                     )
-                    if(abs(icor) > 0.5) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+                    if(abs(icor) > 0.5) x$correlated_features[[colcomboid]] <- list(
                         cols = colcombo, 
                         types = types, 
                         test = 'corr',
@@ -79,7 +86,7 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
             # run chi squared.
             testval = suppressWarnings(chisq.test(idt))$p.value
             
-            if(testval < 0.05) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+            if(testval < 0.05) x$correlated_features[[colcomboid]] <- list(
                 cols = colcombo, 
                 types = types, 
                 test = 'chi-squared',
@@ -106,7 +113,7 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
             # special case where inum is single-value.
             if(all(inum == inum[1])){
                 
-                x$correlated_features[[length(x$correlated_features) + 1]] <- list(
+                x$correlated_features[[colcomboid]] <- list(
                     cols = colcombo, 
                     types = types, 
                     test = 'single-value',
@@ -116,17 +123,25 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE){
                 
             } else {
 
-                mresult = data.frame(summary(lm(inum ~ ifac))$coefficients)
+                m = lm(inum ~ ifac)
+                coefs = data.frame(summary(m)$coefficients)
+                r2 = summary(m)$r.squared
                 
-                if(any(mresult$Pr...t.. < 0.1)) x$correlated_features[[length(x$correlated_features) + 1]] <- list(
-                    cols = colcombo, 
-                    types = types, 
-                    test = 'lm-pvalue',
-                    value = round(min(mresult$Pr...t..), 4),
-                    info = glue('logistic regression p-value (smaller better):{fmat(round(min(mresult$Pr...t..), 4), "%")}')
-                )
+                #if(any(coefs$Pr...t..[-1] < 0.1)){ # -1 to drop (Intercept)
+                if(r2 > 0.5){
+                    x$correlated_features[[colcomboid]] <- list(
+                        cols = colcombo, 
+                        types = types, 
+                        #test = 'lm-pvalue',
+                        #value = round(min(mresult$Pr...t..), 4),
+                        #info = glue('regression p-value (smaller better):{fmat(round(min(mresult$Pr...t..), 4), "%")}')
+                        test = 'lm-rsquared',
+                        value = round(r2, 4),
+                        info = glue('regression r squared:{fmat(round(r2, 4), "%")}')
+                    )
+                }
                 
-                rm(mresult)
+                rm(m, coefs)
                 
             }
             

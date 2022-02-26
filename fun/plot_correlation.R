@@ -1,7 +1,8 @@
 require(ggplot2)
-plot_correlation = function(x, i){
+plot_correlation = function(x, columns){
 
-    icorrelated_features = x$correlated_features[[i]]
+    colcomboid = paste0(sort(columns), collapse = '-')
+    icorrelated_features = x$correlated_features[[colcomboid]]
 
     # two factors = heatmap:
     if(all(icorrelated_features$types == 'factor')){
@@ -47,6 +48,18 @@ plot_correlation = function(x, i){
             ggtitle(glue('Distribution of {numcol} by {faccol}')) + 
             xlab(faccol) + 
             ylab(numcol)
+
+    # 2 numlike: scatter.
+    } else if(all(icorrelated_features$types == 'numlike')){
+        
+        col1 = icorrelated_features$cols[1]
+        col2 = icorrelated_features$cols[2]
+        
+        iplot = ggplot(data.frame(x = x$data[[col1]], y = x$data[[col2]]), aes(x = x, y = y)) + 
+            geom_point() + 
+            ggtitle(glue('{col2} by {col1}')) + 
+            xlab(col1) + 
+            ylab(col2)
 
     } else {
         stop(glue('Case not yet handled: [{easyr::cc(icorrelated_features$types, sep = ", ")}]. Error E524.'))

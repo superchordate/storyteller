@@ -20,11 +20,8 @@ dt %>%
   ) %>%
   summary()
 
-dt %>%
-  fitmodel(
-    target = 'total_claim_amount',
-    ignorecols = c('vehicle_claim', 'property_claim', 'injury_claim')
-  ) %>%
-  summary()
-
+plot_correlation(
+  dt,  
+  c('incident_date_year', 'age')
+)
 

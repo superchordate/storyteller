@@ -16,9 +16,11 @@ dropnoisecols = function(
         napct = round(mean(is.na(x$data[[col]])), 2)
         if(iclass == 'logical') truepct = round(sum(x$data[[col]]) / nrow(x$data), 2)
         if(iclass %in% c('factor', 'ordinal')) idlike = !any(grepl('[ /]', uniquevals)) # characters not typical in ids.
+
+        #if(col == 'incident_date_year') browser()
         
         # single-valued
-        if(iclass %in% c('factor', 'ordinal') && length(uniquevals) == 1){
+        if(length(uniquevals) == 1){
             dodrop[[length(dodrop) + 1]] <- list(
                 col = col, 
                 reason = 'singleval',
