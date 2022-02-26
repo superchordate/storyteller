@@ -4,6 +4,7 @@ require(magrittr)
 require(progress)
 require(reshape2)
 require(glmnet) # for LASSO.
+require(nnet) # for multinomimal regression
 require(lubridate)
 begin()
 
