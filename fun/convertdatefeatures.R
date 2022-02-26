@@ -49,7 +49,6 @@ convert_date_features = function(x,  verbose = TRUE){
         )
         x$data[[date]] <- NULL
         x$classes = x$classes[names(x$classes) != date]
-        x$dropped_cols = c(x$dropped_cols, date)
     }
 
     return(x)
