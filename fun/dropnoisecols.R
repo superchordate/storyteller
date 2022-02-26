@@ -25,7 +25,7 @@ dropnoisecols = function(
                 col = col, 
                 reason = 'singleval',
                 info = uniquevals,
-                shortinfo = pctunique
+                shortinfo = uniquevals
             )
 
         # too many NAs.
