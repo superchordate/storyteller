@@ -3,6 +3,12 @@ correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, ta
     x = as.superframe(x, run_autotype = run_autotype)
     x$target = target
     
+    if(target %ni% names(x$data)) stop(glue('
+      Target [{target}] is not in the dataset. 
+      It may have been dropped during pre-processing. Use verbose and review the console output to check.
+      storytellr::correlatedfeatures_address Error 751.
+    '))
+    
     addresscols = list()
     for(i in x$correlated_features) if(target %ni% i$cols) addresscols[[paste0(i$cols, collapse = '')]] <- i$cols
     
@@ -55,6 +61,14 @@ calculate_strength = function(data, target, calculating_column){
   # is binomial or numeric? use lasso regression. 
   isbinom = length(unique(data[[target]])) == 2
   if(is.numeric(data[[target]]) || isbinom){
+
+    if(isbinom && is.factor(data[[target]])) stop(glue('
+      Target column [{target}] could seems binomial but is not a logical or integer.
+      Please convert the column to logical prior to sending it to storytellr.
+      storytellr::correlatedfeatures_address Error 712.
+    '))
+
+    if(isbinom && is.logical(data[[target]])) data[[target]] = data[[target]] * 1
 
     testval = summary(lm(
       as.formula(paste0('`', target, '` ~ `', calculating_column, '`')), 
