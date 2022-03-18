@@ -51,7 +51,7 @@ dropnoisecols = function(
             )
 
         # not enough TRUE values. 
-        } else if(iclass == 'logical' && (truepct > truepct_cutoff)){
+        } else if(iclass == 'logical' && (truepct < truepct_cutoff)){
             dodrop[[length(dodrop) + 1]] <- list(
                 col = col, 
                 reason = 'truepct',
