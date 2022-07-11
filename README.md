@@ -7,9 +7,6 @@ These steps are working (ish):
 * groupother: Group small groups.
 * dropoutliers: Remove outliers.
 * find_correlated_features: compare features to identify those that are correlated.
-
-These are still outsanding:
-
 * Method to easily plot correlated features.
 * Pick a target and identify which features drive it and the strength and direction of effects.
 
