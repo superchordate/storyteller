@@ -36,5 +36,23 @@ dt %<>%
   dropoutliers() %>%
   find_correlated_features()
 
+# summarize patterns found in your data.
 summary(dt)
+
+# plot correlation between two variables.
+plot_correlation(
+  dt,  
+  c('incident_date_year', 'age')
+)
+
+# fit a model against a target and identify key drivers.
+dt %>%
+  correlatedfeatures_address(
+    target = 'total_claim_amount'
+  ) %>%
+  fitmodel(
+    ignorecols = c('vehicle_claim', 'property_claim', 'injury_claim')
+  ) %>%
+  summary()
+
 ```
