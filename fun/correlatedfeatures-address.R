@@ -7,13 +7,23 @@ correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, ta
     for(i in x$correlated_features) if(target %ni% i$cols) addresscols[[paste0(i$cols, collapse = '')]] <- i$cols
     
     dodrop = list()
+    pb <- progress_bar$new(total = length(addresscols))
     for(i in names(addresscols)){
+
+      if(verbose) pb$tick()
 
       cols = addresscols[[i]]
       if(is.null(cols)) next
       
-      r2s = sapply(cols, function(i) calculate_strength(x$data, target, i))
-      dropcol = names(r2s)[r2s != max(r2s)]      
+      cols_strength = sapply(cols, function(i) calculate_strength(x$data, target, i))
+      
+      # sometimes the cols_strength is the same. 
+      #  in this case, drop the second.
+      dropcol = if(all(cols_strength == max(cols_strength))){
+        names(cols_strength)[2]
+      } else {
+        names(cols_strength)[cols_strength != max(cols_strength)]
+      }
       
       dodrop[[length(dodrop) + 1]] <- list(
           col = dropcol, 
@@ -24,7 +34,7 @@ correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, ta
       
       for(j in names(addresscols)) if(!is.null(addresscols[[j]]) && dropcol %in% addresscols[[j]]) addresscols[[j]] <- NULL
       
-      rm(i, j, cols, r2s, dropcol)
+      rm(i, j, cols, cols_strength, dropcol)
       
     }
 
@@ -71,9 +81,16 @@ calculate_strength = function(data, target, calculating_column){
         as.formula(paste0('y ~ `', calculating_column, '`')), 
         data = data
       ))$r.squared
-    }))
+    }), na.rm = TRUE)
     
   }
+
+  if(is.na(testval)) stop(glue('
+    NA test value at storyteller::calculate_strength.
+    target = [{target}]
+    calculating_column = [{calculating_column}]
+    Error 103.
+  '))
 
   return(testval)
 
