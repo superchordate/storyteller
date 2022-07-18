@@ -34,7 +34,7 @@ dt %<>%
   dropnoisecols() %>%
   groupother() %>%
   dropoutliers() %>%
-  find_correlated_features()
+  correlatedfeatures_find()
 
 # summarize patterns found in your data.
 summary(dt)
