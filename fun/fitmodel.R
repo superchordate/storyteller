@@ -38,7 +38,7 @@ fitmodel = function(x, verbose = TRUE, run_autotype = TRUE, target = x$target, i
           'Error using cv.glmnet:',
           as.character(e),
           'This is probably fine, but might be worth addressing if you get bad results.',
-          'Warning storyteller::fitmodel W1113.'
+          'Warning storyteller::fitmodel W1113.',
           collapse = '\n'
         ))
 
