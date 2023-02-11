@@ -23,14 +23,34 @@ fitmodel = function(x, verbose = TRUE, run_autotype = TRUE, target = x$target, i
         y = (y == y[1]) * 1
       }
       
+      # remove single-valued columns.
+      ls = sapply(1:ncol(Xdm), function(x) length(unique(Xdm[,x])))
+      Xdm = Xdm[, ls > 1]
+      
       # https://www.statology.org/lasso-regression-in-r/
-      m = glmnet(Xdm, y, alpha = 1, lambda = cv.glmnet(Xdm, y, alpha = 1)$lambda.min)
+      m = tryCatch({
+
+        glmnet(Xdm, y, alpha = 1, lambda = cv.glmnet(Xdm, y, alpha = 1)$lambda.min)
+
+      }, error = function(e){
+        
+        warning(paste(
+          'Error using cv.glmnet:',
+          as.character(e),
+          'This is probably fine, but might be worth addressing if you get bad results.',
+          'Warning storyteller::fitmodel W1113.',
+          collapse = '\n'
+        ))
+
+        glmnet(Xdm, y, alpha = 1)
+      })
+
       cm = coef(m)
       scm = summary(cm)
       features = data.frame(feature = rownames(cm)[scm$i], coef = scm$x) %>%
         filter(feature != '(Intercept)')
       
-      yX = X[, features$feature, drop = FALSE]
+      yX = X[, unique(features$feature), drop = FALSE]
       yX$y = y
       results[[target]] <- lm(y ~ ., data = yX)
 

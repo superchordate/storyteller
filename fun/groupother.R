@@ -1,6 +1,6 @@
 groupother = function(
     x, verbose = TRUE, run_autotype = TRUE, pct_catg_cutoff = 0.05, 
-    othername = 'small_groups'
+    othername = 'small_groups', excludefrom_groupother = c()
 ){
 
     x = as.superframe(x, run_autotype = run_autotype)
@@ -8,7 +8,7 @@ groupother = function(
 
     if(verbose) print('Removing columns that are not useful.')
 
-    for(col in names(x$data)) if(class(x$data[[col]])[1] == 'factor'){
+    for(col in setdiff(names(x$data), excludefrom_groupother)) if(class(x$data[[col]])[1] == 'factor'){
 
         valcounts = table(x$data[[col]][ !is.na(x$data[[col]]) ])
         toosmall = which(valcounts < nrow(x$data) * pct_catg_cutoff)
