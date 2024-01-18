@@ -56,3 +56,6 @@ dt %>%
   summary()
 
 ```
+
+You can also visit https://www.kaggle.com/code/brycechamberlain/data-explore-automl/ for a notebook example. 
+

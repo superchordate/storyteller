@@ -8,7 +8,8 @@ if(!cache.ok(1)){
         vars(policy_bind_date, incident_date), 
         list(parse_date_time), 
         orders = 'ymd_HMS'
-      )
+      ) %>%
+      mutate(fraud_reported = (fraud_reported == 'Y'))
     
     save.cache(dt)
 }
