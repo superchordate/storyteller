@@ -2,6 +2,8 @@ correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, ta
 
     x = as.superframe(x, run_autotype = run_autotype)
     x$target = target
+
+    if(target %ni% names(x$data)) stop(glue('Target [{target}] not found in data. Found columns: [{cc(names(x$data), sep = ", ")}]'))
     
     addresscols = list()
     for(i in x$correlated_features) if(target %ni% i$cols) addresscols[[paste0(i$cols, collapse = '')]] <- i$cols
@@ -40,11 +42,12 @@ correlatedfeatures_address = function(x, verbose = TRUE, run_autotype = TRUE, ta
 
     # drop columns and add info to object.
     # must match fun\dropnoisecols.R
+    x$data_nocorrelatedfeatures = x$data
     for(idodrop in dodrop){
         
         # move data to the dropped column list.
-        idodrop$data = x$data[[idodrop$col]]
-        x$data[[idodrop$col]] <- NULL
+        idodrop$data_nocorrelatedfeatures = x$data_nocorrelatedfeatures[[idodrop$col]]
+        x$data_nocorrelatedfeatures[[idodrop$col]] <- NULL
         x$classes = x$classes[which(names(x$classes) != idodrop$col)]
 
         # add to object dropped columns.
@@ -74,6 +77,11 @@ calculate_strength = function(data, target, calculating_column){
   # otherwise use a loop to create models for each value
   # similar to multinomial.
   } else {
+    
+    if(is.null(levels(data[[target]]))) stop(glue('
+      Target [{target}] does not have levels.
+      Error E332.
+    '))
 
     testval = mean(sapply(levels(data[[target]]), function(ival){
       data$y = (data[[target]] == ival) * 1

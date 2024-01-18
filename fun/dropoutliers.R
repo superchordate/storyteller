@@ -1,4 +1,6 @@
-dropoutliers = function(x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE, percentile_limit = 0.99){
+dropoutliers = function(
+    x, verbose = TRUE, checkabs = TRUE, run_autotype = TRUE, percentile_limit = 0.95
+){
 
     x = as.superframe(x, run_autotype = run_autotype)
     if(verbose) print('Checking for outliers.')

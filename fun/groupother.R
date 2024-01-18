@@ -6,7 +6,7 @@ groupother = function(
     x = as.superframe(x, run_autotype = run_autotype)
     x$othername = othername
 
-    if(verbose) print('Removing columns that are not useful.')
+    if(verbose) print(as.character(glue('Grouping to small categories to \'{othername}\'.')))
 
     for(col in setdiff(names(x$data), excludefrom_groupother)) if(class(x$data[[col]])[1] == 'factor'){
 

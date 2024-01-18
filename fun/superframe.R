@@ -3,6 +3,10 @@ as.superframe = function(x, run_autotype = run_autotype){
     
     if(class(x)[1] == 'superframe') return(x)
 
+    # validation. 
+    badnames = grep('=', names(x), value = TRUE)
+    if(length(badnames) > 0) stop(glue('Please remove special characters from column names: [{cc(badnames, sep = ", ")}]'))
+
     x = data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
     if(run_autotype) x = easyr::atype(x)
     x = easyr::char2fac(x, na_level = NA)
@@ -36,11 +40,16 @@ summary.superframe = function(x) list(
         glue::glue('{i$col} ({i$reason} {i$shortinfo})')
     })),
     `dropped` = glue::glue('[{nrow(x$dropped_rows)}] rows due to [{cc(unique(x$dropped_rows$reason, sep = ", "))}]'),
-    `correlated features` = data.frame(
+    `correlated features` = if(length(x$correlated_features) == 0){
+        'no-correlated-features'
+    } else {
+        data.frame(
             col1 = sapply(x$correlated_features, function(x) x$cols[1]),
             col2 = sapply(x$correlated_features, function(x) x$cols[2]),
             test = sapply(x$correlated_features, function(x) x$test),
             value = sapply(x$correlated_features, function(x) x$value)
         ) %>% 
         arrange(col1, col2)
+     },
+    `model results` = x$results    
 )
