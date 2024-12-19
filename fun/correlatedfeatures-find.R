@@ -98,8 +98,8 @@ correlatedfeatures_find = function(x, verbose = TRUE, run_autotype = TRUE, corr_
                 cols = colcombo, 
                 types = types, 
                 test = 'chi-squared',
-                value = round(testval, 4),
-                info = glue('chi-squared p-value (smaller better): {fmat(round(testval, 4), "%")}')
+                value = round(test_pval, 4),
+                info = glue('chi-squared p-value (smaller better): {fmat(round(test_pval, 4), "%")}')
             )
             x$correlation %<>% bind_rows(data.frame(id = colcomboid, type = 'both-factors', test_pval = test_pval))
             
