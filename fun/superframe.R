@@ -53,3 +53,40 @@ summary.superframe = function(x) list(
      },
     `model results` = x$results    
 )
+
+drop.superframe = function(x, cols, reason){
+
+    # ensure that x is a superframe.
+    x = as.superframe(x)
+
+    # verify that all columns are in x$data.
+    badcols = setdiff(cols, colnames(x$data))
+    if(length(badcols) > 0) stop(glue('Columns [{cc(badcols, sep = ", ")}] not found in data.'))
+
+    # add the columns to the dropped list.
+    for(col in cols){
+        x$dropped_cols[[col]] = list(
+            col = col, 
+            reason = reason, 
+            info = glue('Column [{col}] dropped manually: {reason}.'),
+            shortinfo = glue('Manually dropped: {reason}.')
+        )
+    }
+
+    # drop from data. 
+    x$data = x$data[, setdiff(colnames(x$data), cols)]
+    x$data_nocorrelatedfeatures = x$data_nocorrelatedfeatures[, setdiff(colnames(x$data_nocorrelatedfeatures), cols)]
+    x$text_cols = setdiff(x$text_cols, cols)
+    x$classes = x$classes[which(names(x$classes) %ni% cols)]
+
+    # drop from correlated features. 
+    x$correlated_features = Filter(
+        function(i) !any(i$cols %in% cols),
+        x$correlated_features
+    )
+
+    return(x)
+}
+
+colnames.superframe = function(x) colnames(x$data)
+names.superframe = function(x) colnames(x$data)

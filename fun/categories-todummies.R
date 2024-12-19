@@ -8,12 +8,11 @@ categories_to_dummies = function(
 
     x$data = convert_to_dummies(x = x$data, skip = skip)
 
-    # return data and dropped rows.
     return(x)
 
 }
 
-convert_to_dummies = function(x, factors, istrain, skip = c()){
+convert_to_dummies = function(x, factors = NULL, istrain = FALSE, skip = c()){
 
     if(is.null(factors)) factors = setdiff(names(x)[sapply(x, is.factor)], skip)
 
